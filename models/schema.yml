@@ -1,0 +1,109 @@
+version: 2
+
+models:
+  - name: inventory_by_model_id
+    description: Total inventory on hand by model
+    columns:
+      - name: productmodelid
+        description: product model id, primary key
+        tests:
+          - unique
+      - name: totalinventory
+        description: total inventory of this product model on hand
+        tests:
+          - not_null
+          - non_negative
+  - name: cost_of_inventory_by_location
+    description: Total cost of inventory held at each location
+    columns:
+      - name: locationid
+        description: location id, primary key
+        tests:
+          - not_null
+          - unique
+      - name: totalcost
+        description: total production cost of all product at this location
+        tests:
+          - not_null
+          - non_negative
+  - name: stg_product
+    description: This model holds basic information about products
+    columns:
+      - name: productid
+        description: primary key
+        tests:
+          - unique
+          - not_null
+      - name: productmodelid
+        description: id of model of which this product is a part
+      - name: standardcost
+        description: cost of bying or producing one unit of this product
+        tests:
+          - not_null
+          - non_negative
+  - name: stg_listpricehistory
+    description: History of list prices for various models
+    columns:
+      - name: productid
+        description: internal id, foreign key to product table
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_product')
+              field: productid
+      - name: startdate
+        description: first date this price is applied
+        tests:
+          - not_null
+      - name: enddate
+        description: first date this price is NOT applied
+      - name: listprice
+        description: listing price for priduct
+        tests:
+          - not_null
+          - non_negative
+  - name: stg_transactions
+    description: This model cleans up sale transaction data
+    columns:
+      - name: productid
+        description: internal id, foreign key to product table
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_product')
+              field: productid
+      - name: transactiondate
+        description: timestamp of when sale occurred
+        tests:
+          - not_null
+      - name: quantity
+        description: count of this product sold
+        tests:
+          - not_null
+          - non_negative
+      - name: actualcost
+        description: amount charged per item in this sale
+        tests:
+          - not_null
+          - non_negative
+  - name: stg_discount_per_transactions
+    description: This model records the total discount on each transaction so they can be aggregated
+    columns:
+      - name: productid
+        description: internal id, foreign key to product table
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_product')
+              field: productid
+      - name: transactiondate
+        description: timestamp of when sale occurred
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_transactions')
+              field: transactiondate
+      - name: totaldiscount
+        description: total discount to paying list price for this transaction
+        tests:
+          - not_null
